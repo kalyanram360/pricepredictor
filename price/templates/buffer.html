@@ -1,0 +1,201 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buffer Stock Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #e0f7fa;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .buffer-stock {
+            text-align: center;
+            padding: 20px;
+            background-color: #00796b;
+            color: #fff;
+            font-size: 28px;
+            font-weight: bold;
+            border-radius: 8px;
+        }
+
+        .alert {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #ffcc00;
+            color: #333;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .stock-table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .stock-table th,
+        .stock-table td {
+            border: 1px solid #ddd;
+            padding: 15px;
+            text-align: left;
+            color: #004d40;
+        }
+
+        .stock-table th {
+            background-color: #00796b;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .stock-table td {
+            vertical-align: top;
+            font-size: 18px;
+        }
+
+        .description,
+        .send-button {
+            margin-top: 10px;
+        }
+
+        .send-button {
+            padding: 10px 20px;
+            background-color: #ff5722;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .send-button:hover {
+            background-color: #e64a19;
+        }
+
+        .high-price-alerts {
+            margin-top: 20px;
+        }
+
+        .high-price-alerts h3 {
+            color: #d32f2f;
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+
+        .high-price-alerts ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .high-price-alerts li {
+            background-color: #ffebee;
+            border: 1px solid #d32f2f;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 5px;
+            font-size: 16px;
+            color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="buffer-stock">
+            BUFFER STOCK
+        </div>
+
+        <!-- Price Alerts Section -->
+        {% if high_price_commodities %}
+            <div class="high-price-alerts">
+                <h3>High Price Alerts</h3>
+                <ul>
+                    {% for alert in high_price_commodities %}
+                        <li>Commodity: {{ alert.commodity.Commodity }} | State: {{ alert.state }} | Price: ₹{{ alert.price }} (Threshold: ₹{{ alert.threshold }})</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <table class="stock-table" id="stockTable">
+            <thead>
+                <tr>
+                    <th>Commodity Name</th>
+                    <th>Stock</th>
+                    <th>Threshold</th>
+                    <th>Send Stock</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for commodity in commodities %}
+                <tr>
+                    <td>{{ commodity.Commodity }}</td>
+                    <td id="commodity{{ commodity.id }}Stock">{{ commodity.stock }}</td>
+                    <td id="commodity{{ commodity.id }}Threshold">{{ commodity.threshold }}</td>
+                    <td>
+                        <input type="number" id="quantity{{ commodity.id }}" placeholder="Enter quantity">
+                        <button class="send-button" data-buffer-id="{{ commodity.id }}" onclick="decreaseStock(this)">Send</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function decreaseStock(button) {
+            const commodityId = button.getAttribute('data-buffer-id');
+            const quantityElement = document.getElementById('quantity' + commodityId);
+            const stockElement = document.getElementById('commodity' + commodityId + 'Stock');
+            const thresholdElement = document.getElementById('commodity' + commodityId + 'Threshold');
+
+            let currentStock = parseFloat(stockElement.innerText);
+            let sendQuantity = parseFloat(quantityElement.value);
+            let threshold = parseFloat(thresholdElement.innerText);
+
+            if (sendQuantity > 0 && currentStock >= sendQuantity) {
+                currentStock -= sendQuantity;
+
+                // Update the stock on the page
+                stockElement.innerText = currentStock;
+
+                // Send AJAX request to update the stock in the database
+                fetch(`/update-stock/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ 'commodity_id': commodityId, 'new_stock': currentStock })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (currentStock < threshold) {
+                            alert(`Warning: The stock for ${data.commodity_name} is below the threshold level!`);
+                        }
+                    } else {
+                        alert('Failed to update the stock in the database.');
+                    }
+                });
+            } else {
+                alert('Invalid quantity or not enough stock available!');
+            }
+        }
+    </script>
+</body>
+</html>

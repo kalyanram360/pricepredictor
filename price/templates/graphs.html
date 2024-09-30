@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commodity Price Graph</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-top: 30px;
+        }
+
+        form {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px auto;
+            width: 300px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        input[type="text"],
+        input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        input[type="submit"] {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #218838;
+        }
+
+        .graph-container {
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 900px;
+        }
+
+        .no-data-message {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Commodity Price Trends</h1>
+
+    <!-- Form to select State and Commodity -->
+    <form method="GET" action="">
+        <label for="state">Enter State:</label>
+        <input type="text" id="state" name="state" placeholder="e.g. Andhra Pradesh" required><br>
+        
+        <label for="commodity">Enter Commodity:</label>
+        <input type="text" id="commodity" name="commodity" placeholder="e.g. Potato" required><br>
+
+        <input type="submit" value="Generate Plot">
+    </form>
+
+    <!-- Area to display the graph -->
+    {% if graph_html %}
+    <div class="graph-container">
+        {{ graph_html|safe }}
+    </div>
+    {% endif %}
+
+    <!-- Display message if no data is available -->
+    {% if no_data_message %}
+    <p class="no-data-message">{{ no_data_message }}</p>
+    {% endif %}
+    
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price Fixing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            width: 80%;
+            max-width: 800px;
+            transition: all 0.3s ease;
+        }
+        .card {
+            flex: 1;
+            max-width: 300px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .card h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #333;
+        }
+        .card input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .card button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #fff;
+            transition: background-color 0.3s ease;
+        }
+        .card button#fix-estimated {
+            background-color: #28a745; 
+        }
+        .card button#fix-manually,
+        .card button#fix-price {
+            background-color: #007bff; 
+        }
+        .card button#fix-estimated:hover {
+            background-color: #218838; 
+        }
+        .card button#fix-manually:hover,
+        .card button#fix-price:hover {
+            background-color: #0056b3;
+        }
+        #manual-price-card {
+            display: none;
+            opacity: 0;
+        }
+        .container.active #manual-price-card {
+            display: block;
+            opacity: 1;
+        }
+    </style>
+    <script>
+        function toggleManualPrice() {
+            var container = document.querySelector('.container');
+            container.classList.toggle('active');
+            document.getElementById('fix-estimated').style.display = 'none';
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <!-- Estimated Price Card -->
+        <div class="card" id="estimated-price-card">
+            <h2>Estimated Price: ₹{{ price }}</h2>
+            <form action="{% url 'price_fix' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" id="fix-estimated" name="action" value="fix-estimated">Fix Estimated Price</button>
+            </form>
+            <button id="fix-manually" type="button" onclick="toggleManualPrice()">Enter Price Manually</button>
+        </div>
+
+        <!-- Manual Price Entry Card -->
+        <div class="card" id="manual-price-card">
+            <h2>Enter Price Manually:</h2>
+            <form action="{% url 'price_fix' %}" method="post">
+                {% csrf_token %}
+                <input type="number" name="manual-price" placeholder="Enter price" required>
+                <button type="submit" id="fix-price" name="action" value="fix-price">Fix Price</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
